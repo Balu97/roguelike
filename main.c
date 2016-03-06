@@ -1,6 +1,6 @@
 #include <curses.h>
 #include <string.h>
-#define build_number 2
+#define BUILD_NUMBER "3"
 
 struct creature{
 	int x;
@@ -53,7 +53,20 @@ void render(struct world *inworld){
 	for(i = 0; i < 24; i++){
 		strcpy(currentline, inworld->area[i]);
 		mvprintw(i, 0, currentline);
-		mvprintw(inworld->player.y, inworld->player.x, "@");
+	}
+	mvprintw(inworld->player.y, inworld->player.x, "@");
+	mvprintw(0, 0, "V. BUILD_NUMBER"BUILD_NUMBER);
+}
+
+void update(struct world *inworld, char input){
+	switch(input){
+		case 'w': inworld->player.y -= 1;
+			  break;
+		case 's': inworld->player.y += 1;
+			  break;
+		case 'a': inworld->player.x -= 1;
+			  break;
+		case 'd': inworld->player.x += 1;
 	}
 }
 
@@ -78,6 +91,7 @@ int main(){
 
 	while(input != 'e'){
 		input = getch();
+		update(&mainWorld, input);
 		render(&mainWorld);
 		refresh();
 	}
