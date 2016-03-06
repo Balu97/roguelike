@@ -1,6 +1,9 @@
 #include <curses.h>
 #include <string.h>
-#define BUILD_NUMBER "3"
+#include "buildnumber.h"
+
+#define SCREEN_WIDTH 80
+#define SCREEN_HEIGHT 24
 
 struct creature{
 	int x;
@@ -47,15 +50,25 @@ void generateWorld(struct world *inworld){
 	}
 }
 
+void print_tile(int y, int x, char tile){
+	switch(tile){
+		case ';': attron(COLOR_PAIR(1));
+			  mvaddch(y, x, tile);
+			  attroff(COLOR_PAIR(1));
+			  break;
+	}
+}
+
 void render(struct world *inworld){
-	int i;
-	char currentline[81];
-	for(i = 0; i < 24; i++){
-		strcpy(currentline, inworld->area[i]);
-		mvprintw(i, 0, currentline);
+	int y;
+	int x;
+	for(y = 0; y < 24; y++){
+		for(x = 0; x < 80; x++){
+			print_tile(y, x, inworld->area[y][x]);
+		}
 	}
 	mvprintw(inworld->player.y, inworld->player.x, "@");
-	mvprintw(0, 0, "V. BUILD_NUMBER"BUILD_NUMBER);
+	mvprintw(0, 0, "Build Nr. "BUILD_NUMBER);
 }
 
 void update(struct world *inworld, char input){
@@ -77,6 +90,9 @@ int main(){
 	keypad(stdscr, TRUE);
 	noecho();
 	curs_set(0);
+
+	start_color();
+	init_pair(1, COLOR_GREEN, COLOR_BLACK);
 	//end of curses initialization
 	struct world mainWorld;
 
