@@ -5,19 +5,39 @@
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 24
 
-struct creature{
+//The entity structure defines entitys that are places in the world.
+struct entity
+{
 	int x;
 	int y;
 };
 
-struct world{
-	struct creature player;
-	char area[24][81];
+//The tile structure defines a tile and its properties
+struct tile
+{
+	//If creatures can walk on on a tile goable is to be set to a value not 0.
+	char goable;
+	char representation; //the char that represents the tile
+	int color;
 };
 
-void generateWorld(struct world *inworld){
+//The world structure defines a world in the game with all its properties.
+struct world
+{
+	struct entity player;
+	char area[24][81]; //There is currently only one area in the Game.
+	struct tile tiles[256]; //All the tiles in the World
+};
+
+
+//This function prepares a world structur for the player.
+void generateWorld(struct world *inworld)
+{
+	//setting the start values for the player
 	inworld->player.x = 10;
 	inworld->player.y = 10;
+
+	//assigning an area to the world
 	char tmp[24][81] = {
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"},
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"},
@@ -44,46 +64,73 @@ void generateWorld(struct world *inworld){
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"},
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"}
 	};
+
 	int i = 0;
 	for(i = 0; i < 24; i++){
 		strcpy(inworld->area[i], tmp[i]);
 	}
+
+	//Defining all the values for the tiles
+	inworld->tiles[';'].goable = 1;
+	inworld->tiles[';'].color = 1;
+	inworld->tiles[';'].representation = ';';
 }
 
-void print_tile(int y, int x, char tile){
-	switch(tile){
-		case ';': attron(COLOR_PAIR(1));
-			  mvaddch(y, x, tile);
-			  attroff(COLOR_PAIR(1));
-			  break;
-	}
+//This funcion prints a tile according to its properties defined in tilesof inworld.
+void print_tile(int y, int x, char tile, struct world *inworld)
+{
+	attron(COLOR_PAIR(inworld->tiles[tile].color));
+	mvaddch(y, x, inworld->tiles[tile].representation);
+	attroff(COLOR_PAIR(inworld->tiles[tile].color));
 }
 
-void render(struct world *inworld){
+//The render function is called every game turn
+void render(struct world *inworld)
+{
 	int y;
 	int x;
 	for(y = 0; y < 24; y++){
 		for(x = 0; x < 80; x++){
-			print_tile(y, x, inworld->area[y][x]);
+			print_tile(y, x, inworld->area[y][x], inworld);
 		}
 	}
 	mvprintw(inworld->player.y, inworld->player.x, "@");
 	mvprintw(0, 0, "Build Nr. "BUILD_NUMBER);
+	refresh();
 }
 
-void update(struct world *inworld, char input){
-	switch(input){
-		case 'w': inworld->player.y -= 1;
-			  break;
-		case 's': inworld->player.y += 1;
-			  break;
-		case 'a': inworld->player.x -= 1;
-			  break;
-		case 'd': inworld->player.x += 1;
+//Moves the player in a crtain direction
+void go_direction(struct world *inworld, int distanceX, int distanceY)
+{
+	int x = inworld->player.x + distanceX;
+	int y = inworld->player.y + distanceY;
+	if(inworld->tiles[inworld->area[y][x]].goable){
+		inworld->player.x = x;
+		inworld->player.y = y;
 	}
 }
 
-int main(){
+//Updates inworld based on the given input
+void update(struct world *inworld, char input)
+{
+	switch(input){
+		case 'w': go_direction(inworld, 0, -1);
+			  //inworld->player.y -= 1;
+			  break;
+		case 's': go_direction(inworld, 0, 1);
+			  //inworld->player.y += 1;
+			  break;
+		case 'a': go_direction(inworld, -1, 0);
+			  //inworld->player.x -= 1;
+			  break;
+		case 'd': go_direction(inworld, 1, 0);
+			  //inworld->player.x += 1;
+			  break;
+	}
+}
+
+int main()
+{
 	//start of curses initialization
 	initscr();
 	raw();
@@ -103,15 +150,15 @@ int main(){
 	char input = '.';
 
 	render(&mainWorld);
-	refresh();
 
+	//mainloop
 	while(input != 'e'){
 		input = getch();
 		update(&mainWorld, input);
 		render(&mainWorld);
-		refresh();
 	}
 
+	//cleanup
 	endwin();
 
 	return 0;
