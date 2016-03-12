@@ -25,7 +25,7 @@ struct tile
 struct world
 {
 	struct entity player;
-	char area[24][81]; //There is currently only one area in the Game.
+	char area[SCREEN_HEIGHT][SCREEN_WIDTH + 1]; //There is currently only one area in the Game.
 	struct tile tiles[256]; //All the tiles in the World
 };
 
@@ -38,7 +38,7 @@ void generateWorld(struct world *inworld)
 	inworld->player.y = 10;
 
 	//assigning an area to the world
-	char tmp[24][81] = {
+	char tmp[SCREEN_HEIGHT][SCREEN_WIDTH + 1] = {
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"},
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"},
 		{";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"},
@@ -66,7 +66,7 @@ void generateWorld(struct world *inworld)
 	};
 
 	int i = 0;
-	for(i = 0; i < 24; i++){
+	for(i = 0; i < SCREEN_HEIGHT; i++){
 		strcpy(inworld->area[i], tmp[i]);
 	}
 
@@ -89,8 +89,8 @@ void render(struct world *inworld)
 {
 	int y;
 	int x;
-	for(y = 0; y < 24; y++){
-		for(x = 0; x < 80; x++){
+	for(y = 0; y < SCREEN_HEIGHT; y++){
+		for(x = 0; x < SCREEN_WIDTH; x++){
 			print_tile(y, x, inworld->area[y][x], inworld);
 		}
 	}
@@ -114,18 +114,17 @@ void go_direction(struct world *inworld, int distanceX, int distanceY)
 void update(struct world *inworld, char input)
 {
 	switch(input){
-		case 'w': go_direction(inworld, 0, -1);
-			  //inworld->player.y -= 1;
-			  break;
-		case 's': go_direction(inworld, 0, 1);
-			  //inworld->player.y += 1;
-			  break;
-		case 'a': go_direction(inworld, -1, 0);
-			  //inworld->player.x -= 1;
-			  break;
-		case 'd': go_direction(inworld, 1, 0);
-			  //inworld->player.x += 1;
-			  break;
+		case 'w':	go_direction(inworld, 0, -1);
+				break;
+
+		case 's':	go_direction(inworld, 0, 1);
+				break;
+
+		case 'a':	go_direction(inworld, -1, 0);
+				break;
+
+		case 'd':	go_direction(inworld, 1, 0);
+				break;
 	}
 }
 
@@ -145,8 +144,6 @@ int main()
 
 	generateWorld(&mainWorld);
 
-	int x = 10;
-	int y = 10;
 	char input = '.';
 
 	render(&mainWorld);
