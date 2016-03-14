@@ -1,15 +1,24 @@
 #include <curses.h>
 #include <string.h>
+#include <stdlib.h>
 #include "buildnumber.h"
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 24
 
-//The entity structure defines entitys that are places in the world.
 struct entity
 {
 	int x;
 	int y;
+	int collides;
+	char representation;
+};
+
+//The entity structure defines entitys that are places in the world.
+struct entityList
+{
+	struct entityList* next;
+	struct entity value;
 };
 
 //The tile structure defines a tile and its properties
@@ -27,7 +36,27 @@ struct world
 	struct entity player;
 	char area[SCREEN_HEIGHT][SCREEN_WIDTH + 1]; //There is currently only one area in the Game.
 	struct tile tiles[256]; //All the tiles in the World
+	struct entityList entityList;
 };
+
+
+void listInsert(struct entityList *list, struct entity ent)
+{
+	if(list->next == NULL){
+		list->next = (struct entityList*) malloc(sizeof(struct entityList));
+	}else{
+		listInsert(list->next, ent);
+	}
+	
+}
+
+void listClean(struct entityList *list)
+{
+	if(list->next != NULL){
+		listClean(list->next);
+	}
+	free(list);
+}
 
 
 //This function prepares a world structur for the player.
@@ -82,6 +111,12 @@ void generateWorld(struct world *inworld)
 	inworld->tiles['.'].goable = 1;
 	inworld->tiles['.'].color = 2;
 	inworld->tiles['.'].representation = '.';
+
+	inworld->entityList.next = NULL;
+	inworld->entityList.value.x = 15;
+	inworld->entityList.value.y = 15;
+	inworld->entityList.value.representation = 'O';
+	inworld->entityList.value.collides = 1;
 }
 
 //This funcion prints a tile according to its properties defined in tilesof inworld.
@@ -105,6 +140,12 @@ void render(struct world *inworld)
 	mvprintw(inworld->player.y, inworld->player.x, "@");
 	mvprintw(0, 0, "Build Nr. "BUILD_NUMBER);
 	refresh();
+
+	struct entityList *tmpptr = &inworld->entityList;
+	while(tmpptr != NULL){
+		mvaddch(tmpptr->value.x, tmpptr->value.y, tmpptr->value.representation);
+		tmpptr = tmpptr->next;
+	}
 }
 
 //Moves the player in a crtain direction
@@ -163,7 +204,7 @@ int main()
 		update(&mainWorld, input);
 		render(&mainWorld);
 	}
-
+	
 	//cleanup
 	endwin();
 
