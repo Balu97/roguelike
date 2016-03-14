@@ -2,24 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include "buildnumber.h"
+#include "entitys.h"
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 24
-
-struct entity
-{
-	int x;
-	int y;
-	int collides;
-	char representation;
-};
-
-//The entity structure defines entitys that are places in the world.
-struct entityList
-{
-	struct entityList* next;
-	struct entity value;
-};
 
 //The tile structure defines a tile and its properties
 struct tile
@@ -40,23 +26,7 @@ struct world
 };
 
 
-void listInsert(struct entityList *list, struct entity ent)
-{
-	if(list->next == NULL){
-		list->next = (struct entityList*) malloc(sizeof(struct entityList));
-	}else{
-		listInsert(list->next, ent);
-	}
-	
-}
 
-void listClean(struct entityList *list)
-{
-	if(list->next != NULL){
-		listClean(list->next);
-	}
-	free(list);
-}
 
 
 //This function prepares a world structur for the player.
@@ -204,7 +174,7 @@ int main()
 		update(&mainWorld, input);
 		render(&mainWorld);
 	}
-	
+
 	//cleanup
 	endwin();
 
